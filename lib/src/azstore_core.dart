@@ -224,9 +224,7 @@ class AzureStorage {
     request.headers['Authorization'] = auth;
   }
 
-
   void _sign4Tables(http.Request request) {
-
     request.headers['Date'] = HttpDate.format(DateTime.now());
     request.headers['x-ms-date'] = HttpDate.format(DateTime.now());
     request.headers['x-ms-version'] = '2016-05-31';
@@ -289,7 +287,6 @@ class AzureStorage {
       }
       return;
     }
-
     var message = await res.stream.bytesToString();
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
@@ -357,6 +354,7 @@ class AzureStorage {
     request.headers['Content-Length'] = '${body.length}';
     request.body = body;
     _sign4Tables(request);
+
     var res = await request.send();
     var message = await res.stream.bytesToString();//DEBUG
     if (res.statusCode ==201 || res.statusCode==204 ) {
@@ -364,6 +362,7 @@ class AzureStorage {
     }else if(res.statusCode==204){
       return false;
     }
+
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
@@ -394,8 +393,10 @@ class AzureStorage {
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';
     _sign4Tables(request);
+
     var res = await request.send();
     var message = await res.stream.bytesToString();
+
     if (res.statusCode ==200) {
       List<String> tabList=[];
       var jsonResponse= await jsonDecode(message);
