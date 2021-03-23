@@ -3,7 +3,7 @@ library azstore;
 import 'package:xml/xml.dart';
 
 
-void main(){
+void checkFile(){
   XmlDocument xx= XmlDocument.parse('''<?xml version="1.0" encoding="utf-8"?>  
 <EnumerationResults ServiceEndpoint="https://myaccount.queue.core.windows.net/">  
   <Prefix>string-value</Prefix>  
