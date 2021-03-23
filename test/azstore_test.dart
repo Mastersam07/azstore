@@ -57,17 +57,55 @@ Future<void> main() async {
 //  await testCreateQ();
 //  await testGetQData();
 //  await testPutMessage();
-//  await testGetQMessages();
-  await testPeekQMessages();
+//  await testDeleteMessage();
+  await testUpdateQMessage();
+  await testGetQMessages();
+//  await testClearQMessage();
+//  await testPeekQMessages();
+}
+
+Future<void> testUpdateQMessage() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  print('working on results...');
+  try {
+    bool result = await storage.updateQmessages('ttable',
+      messageId: 'c9aaeea8-4d47-4cf8-a080-250fb218468f',
+    popReceipt: 'AgAAAAMAAAAAAAAAzVPboAkg1wE=',
+    message: 'testing update: This is an update');
+    print('showing results $result');
+  }catch(e){
+    print('delete QM error: ${e.statusCode} ${e.message}');
+  }
+}
+
+Future<void> testClearQMessage() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  print('working on results...');
+  try {
+    bool result = await storage.clearQmessages('ttable');
+    print('showing results $result');
+  }catch(e){
+    print('delete QM error: ${e.statusCode} ${e.message}');
+  }
 }
 
 
+Future<void> testDeleteMessage() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  print('working on results...');
+  try {
+    bool result = await storage.delQmessages('ttable', messageId: '27bc633b-4de0-42bf-bea6-0860bd410f4e', popReceipt: 'AgAAAAMAAAAAAAAAX3e0UwAg1wE=');
+    print('showing results $result');
+  }catch(e){
+    print('delete QM error: ${e.statusCode} ${e.message}');
+  }
+}
 
 Future<void> testPutMessage() async {
   var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
   print('working on results...');
   try {
-    bool result = await storage.putQMessage('ttable', message: 'yo whats up');
+    bool result = await storage.putQMessage('ttable', message: 'testing expiration');
     print('showing results $result');
   }catch(e){
     print('get data error: ${e.statusCode} ${e.message}');
@@ -110,7 +148,7 @@ Future<void> testGetQMessages() async {
     List<AzureQMessage> result = await storage.getQmessages('ttable');
     print('showing results');
     for (var res in result) {
-      print('message ${res.messageText}');
+      print('message ${res}');
     }
   }catch (e){
     print('get messages exception ${e.toString()}');

@@ -51,6 +51,20 @@ class AzureQMessage{
     messageText= xml.getElement('QueueMessage').getElement('MessageText')!=null?
     xml.getElement('QueueMessage').getElement('MessageText').text:'';
   }
+
+  @override
+  String toString() {
+    return '''
+     messageId:$messageId,
+   insertionTime:$insertionTime,
+  expirationTime:$insertionTime,
+  popReceipt:$popReceipt,
+  timeNextVisible:$timeNextVisible,
+  dequeueCount:$dequeueCount,
+  messageText:$messageText,
+    ''';
+  }
+
 }
 
 /// Azure Storage Client
@@ -496,27 +510,25 @@ class AzureStorage {
   Future<Map<String, String>> getQData(String qName) async {
     String path='https://${config[AccountName]}.queue.core.windows.net/$qName?comp=metadata';
     var request = http.Request('PUT', Uri.parse( path));
-//    request.headers['Content-Type'] = 'application/json';
     sign(request);
     var res = await request.send();
     if (res.statusCode ==200 || res.statusCode==204) {
       return res.headers;
     }
-    var message = await res.stream.bytesToString();//DEBUG
+    var message = await res.stream.bytesToString();
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
   /// Delete a new queue
   ///
   /// 'qName' is  mandatory.
-  Future<bool> deleteQueue(String qName) async {
-
+  Future<void> deleteQueue(String qName) async {
     String path='https://${config[AccountName]}.queue.core.windows.net/$qName';
     var request = http.Request('DELETE', Uri.parse( path));
     sign(request);
     var res = await request.send();
     if (res.statusCode ==204) {
-      return true;
+      return ;
     }
     var message = await res.stream.bytesToString();//DEBUG
     throw AzureStorageException(message, res.statusCode, res.headers);
@@ -524,14 +536,11 @@ class AzureStorage {
 
   /// Get a list of all queues attached to the storage account
   Future<List<String>> getQList() async {
-
     String path='https://${config[AccountName]}.queue.core.windows.net?comp=list';
     var request = http.Request('GET', Uri.parse( path));
-//    request.headers['Content-Type'] = 'application/json';
     sign4Q(request);
     var res = await request.send();
     var message = await res.stream.bytesToString();//DEBUG
-//    print('Get queue result ${message}');
     if (res.statusCode ==200) {
       List<String> tabList=[];
       var xx= XmlDocument.parse(message);
@@ -579,12 +588,11 @@ class AzureStorage {
   ///
  ///A specified value must be larger than or equal to 1 second, and cannot be larger than 7 days, or larger than 2 hours on REST protocol versions prior to version 2011-08-18. The visibility timeout of a message can be set to a value later than the expiry time.
   ///
-  ///numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32. If fewer are visible, the visible messages are returned. By default, a single message is retrieved from the queue with this operation.
+  ///numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32. If fewer are visible, the visible messages are returned. By default, this API retrieves 20 messages from the queue with this operation.
   Future<List<AzureQMessage>> getQmessages(
       String qName,
-      {int numofmessages=1,
-        vtimeout=30}) async {
-    String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages?numofmessages=$numofmessages&visibilitytimeout=$vtimeout';
+      {int numofmessages=20}) async {
+    String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages?numofmessages=$numofmessages';
     var request = http.Request('GET', Uri.parse( path));
     sign(request);
     var res = await request.send();
@@ -593,7 +601,6 @@ class AzureStorage {
       List<AzureQMessage> tabList=[];
       var xx= XmlDocument.parse(message);
       for (var qNode in xx.getElement('QueueMessagesList').nodes){
-//        print('node ${qNode.toString()}');
         AzureQMessage azq= AzureQMessage.fromXML(qNode.toString());
         tabList.add(azq);
       }
@@ -619,7 +626,6 @@ class AzureStorage {
       List<AzureQMessage> tabList=[];
       var xx= XmlDocument.parse(message);
       for (var qNode in xx.getElement('QueueMessagesList').nodes){
-//        print('node ${qNode.toString()}');
         AzureQMessage azq= AzureQMessage.fromXML(qNode.toString());
         tabList.add(azq);
       }
@@ -628,28 +634,77 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
- /// The Peek Messages operation retrieves one or more messages from the front of the queue, but does not alter the visibility of the message.
+  /// The Delete Message operation deletes the specified message from the queue.
   ///
   /// 'qName': Name of the queue is  mandatory.
   ///
-  ///numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32. If fewer are visible, the visible messages are returned. By default, a single message is retrieved from the queue with this operation.
-  Future<List<AzureQMessage>> delQmessages(
+  /// 'messageId':	Required.  A valid messageId value returned from an earlier call to the Get Messages or Update Message operation.
+  ///
+  /// 'popReceipt':	Required. A valid pop receipt value returned from an earlier call to the Get Messages or Update Message operation.
+  Future<void> delQmessages(
       String qName,
-      {String messageid, String popreceipt}) async {
-    String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages/$messageid?popreceipt=$popreceipt';
+      {String messageId,
+        String popReceipt}) async {
+
+    String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages/$messageId?popreceipt=$popReceipt';
     var request = http.Request('DELETE', Uri.parse( path));
     sign(request);
     var res = await request.send();
     var message = await res.stream.bytesToString();//DEBUG
-    if (res.statusCode ==200) {
-      List<AzureQMessage> tabList=[];
-      var xx= XmlDocument.parse(message);
-      for (var qNode in xx.getElement('QueueMessagesList').nodes){
-//        print('node ${qNode.toString()}');
-        AzureQMessage azq= AzureQMessage.fromXML(qNode.toString());
-        tabList.add(azq);
+    if (res.statusCode ==200||res.statusCode ==204) {
+      return ;
+    }
+    throw AzureStorageException(message, res.statusCode, res.headers);
+  }
+
+
+  ///The Update Message operation updates the visibility timeout of a message. You can also use this operation to update the contents of a message.
+  ///
+  /// popreceipt	Required. Specifies the valid pop receipt value returned from an earlier call to the Get Messages or Update Message operation.
+  ///
+  ///  message:  Required. The message can be up to 64KB in size.
+  ///
+  /// messageId	Required. Specifies the valid messageId value returned from an earlier call to the Get Messages or Update Message operation.
+  ///
+  ///visibilitytimeout	Required. Specifies the new visibility timeout value, in seconds, relative to server time. The new value must be larger than or equal to 0, and cannot be larger than 7 days. This API defaults this value to 0. The visibility timeout of a message cannot be set to a value later than the expiry time. A message can be updated until it has been deleted or has expired.
+  Future<bool> updateQmessages(
+      @required String qName,
+      { @required String messageId,
+        Duration vTimeout,
+         String message,
+        @required String popReceipt}) async {
+
+      int time=vTimeout!=null?vTimeout.inSeconds:0;
+      String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages/$messageId?popreceipt=$popReceipt&visibilitytimeout=$time';
+      var request = http.Request('PUT', Uri.parse( path));
+      request.body='''<QueueMessage>  
+          <MessageText>$message</MessageText>  
+        </QueueMessage> ''';
+      sign(request);
+
+      var res = await request.send();
+      if (res.statusCode ==200||res.statusCode ==204) {
+        return true;
       }
-      return tabList;
+      message = await res.stream.bytesToString();//DEBUG
+      throw AzureStorageException(message, res.statusCode, res.headers);
+  }
+
+  ///The Clear Messages operation deletes all messages from the specified queue.
+  ///
+  /// 'qName': Name of the queue is  mandatory.
+  ///
+  Future<bool> clearQmessages(
+      String qName,) async {
+    String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages';
+    var request = http.Request('DELETE', Uri.parse( path));
+    sign(request);
+    var res = await request.send();
+    var message = await res.stream.bytesToString();//DEBUG
+
+    if (res.statusCode ==204) {
+
+      return true;
     }
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
