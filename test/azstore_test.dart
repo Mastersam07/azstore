@@ -23,13 +23,26 @@ Future<void> main() async {
 
 //  await testUploadTableNode();
    await testGetTableRow();
-//  await testFilterTable();
+  await testDeleteTableRow();
+  await testFilterTable();
+}
+
+Future<void> testDeleteTableRow() async {
+  try {
+    var storage = AzureStorage.parse(
+        'DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+    await storage.deleteTableRow(tableName: 'profiles', partitionKey: 'fgtdssdas', rowKey: '232');
+  }catch(e){
+    print('delete exception: $e');
+  }
 }
 
 Future<void> testFilterTable() async {
+
   var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
   print('working on results...');
-  List<String> result=await storage.filterTableRows(tableName: 'profiles', filter: 'Age%20eq%20"24"', fields: ['Age']);
+  List<String> result=await storage.filterTableRows(tableName: 'profiles',
+    filter: 'Age%20lt%2024', fields: ['Age','CustomerSince','PartitionKey','RowKey'], top: 10);
   print('showing filter results');
   for(String res in result){
     print(res);
@@ -55,7 +68,6 @@ Future<void> testUploadTableNode() async {
       "PartitionKey":"$myPartitionKey",
       "RowKey":"$myRowKey"
     };
-  print ('started uploading to table');
   await storage.upsertTableRow(
         tableName: 'profiles',
         rowKey:myRowKey,
@@ -70,8 +82,10 @@ Future<void> testUploadTableNode() async {
 Future<void> testGetTableRow() async {
   var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
   try {
-    var myPartitionKey="sfsdfsrg57865746";
-    var myRowKey='237';
+//    await storage.deleteTableRow(tableName: 'profiles',
+//        partitionKey: 'fgtdssdas', rowKey: '232');
+    var myPartitionKey="fgtdssdas";
+    var myRowKey='232';
     String result=await storage.getTableRow(
         tableName: 'profiles',
         partitionKey:myPartitionKey,
@@ -109,6 +123,80 @@ Future<void> testUpdateQMessage() async {
   }
 }
 
+Future<void> testCreateQ() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  await storage.createQueue('newer-queue');
+}
+
+Future<void> testGetQData() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  try {
+    String qName='myqueue';
+    Map<String, String> result = await storage.getQData(qName);
+    print('showing $qName data:\n');
+    for (var res in result.entries) {
+      print('${res.key}: ${res.value}');
+    }
+  }catch(e){
+    print('get data error: ${e.statusCode} ${e.message}');
+  }
+}
+
+Future<void> testDeleteQ() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  await storage.deleteQueue('newer-queue');
+  print('done');
+}
+
+Future<void> testGetQList() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  List<String> result=await storage.getQList();
+  print('showing queue list\n');
+  for(String res in result){
+    print(res);
+  }
+}
+
+
+Future<void> testPutMessage() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  print('working on results...');
+  try {
+    await storage.putQMessage(qName:'ttable', message: 'testing expiration');
+  }catch(e){
+    print('get data error: ${e.statusCode} ${e.message}');
+  }
+}
+
+Future<void> testGetQMessages() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  print('working on results...');
+  try {
+    List<AzureQMessage> result = await storage.getQmessages(qName: 'ttable',//Required
+      numOfmessages: 10//Optional. Number of messages to retrieve. This package returns top 20 filter results when not specified.
+    );
+    print('showing results');
+    for (var res in result) {
+      print('message ${res}');
+    }
+  }catch (e){
+    print('Q get messages exception ${e.toString()}');
+  }
+}
+
+Future<void> testPeekQMessages() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  try {
+    List<AzureQMessage> result = await storage.peekQmessages(qName: 'ttable');
+    print('showing peek results');
+    for (var res in result) {
+      print('message ${res.messageText}');
+    }
+  }catch (e){
+    print('Q peek messages exception ${e.toString()}');
+  }
+}
+
 Future<void> testClearQMessage() async {
   var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
   print('working on results...');
@@ -120,94 +208,16 @@ Future<void> testClearQMessage() async {
   }
 }
 
-
 Future<void> testDeleteMessage() async {
   var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
   print('working on results...');
   try {
-   await storage.delQmessages(qName: 'ttable', messageId: '27bc633b-4de0-42bf-bea6-0860bd410f4e', popReceipt: 'AgAAAAMAAAAAAAAAX3e0UwAg1wE=');
+    await storage.delQmessages(qName: 'ttable', messageId: '27bc633b-4de0-42bf-bea6-0860bd410f4e', popReceipt: 'AgAAAAMAAAAAAAAAX3e0UwAg1wE=');
     print('done');
   }catch(e){
     print('delete QM error: ${e.statusCode} ${e.message}');
   }
 }
 
-Future<void> testPutMessage() async {
-  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
-  print('working on results...');
-  try {
-    bool result = await storage.putQMessage(qName:'ttable', message: 'testing expiration');
-    print('showing results $result');
-  }catch(e){
-    print('get data error: ${e.statusCode} ${e.message}');
-  }
-}
 
 
-
-Future<void> testGetQData() async {
-  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
-  print('working on results...');
-  try {
-    Map<String, String> result = await storage.getQData('ttable');
-    print('showing results');
-    for (var res in result.entries) {
-      print('${res.key}: ${res.value}');
-    }
-  }catch(e){
-    print('get data error: ${e.statusCode} ${e.message}');
-  }
-}
-
-Future<void> testDeleteQ() async {
-  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
-  print('working on results...');
-  await storage.deleteQueue('newer-queue');
-  print('done');
-}
-
-Future<void> testCreateQ() async {
-  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
-  print('working on results...');
-  bool createQ=await storage.createQueue('newer-queue');
-  print('create result $createQ');
-}
-
-Future<void> testGetQMessages() async {
-  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
-  print('working on results...');
-  try {
-    List<AzureQMessage> result = await storage.getQmessages(qName: 'ttable');
-    print('showing results');
-    for (var res in result) {
-      print('message ${res}');
-    }
-  }catch (e){
-    print('get messages exception ${e.toString()}');
-  }
-}
-
-
-Future<void> testPeekQMessages() async {
-  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
-  print('working on results...');
-  try {
-    List<AzureQMessage> result = await storage.peekQmessages(qName: 'ttable');
-    print('showing results');
-    for (var res in result) {
-      print('message ${res.messageText}');
-    }
-  }catch (e){
-    print('peek messages exception ${e.toString()}');
-  }
-}
-
-Future<void> testQs() async {
-  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
-  print('working on results...');
-  List<String> result=await storage.getQList();
-  print('showing results');
-  for(String res in result){
-    print(res);
-  }
-}

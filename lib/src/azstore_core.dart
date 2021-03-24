@@ -454,13 +454,13 @@ class AzureStorage {
         String rowKey,
         List<String> fields}) async {
     String selectParams=_resolveNodeParams(fields);
-    String path='https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\',RowKey=\'$rowKey\')?select=${selectParams}';
-    print('get path: $path');
+    String path='https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\',RowKey=\'$rowKey\')?\$select=${selectParams}';
+//    print('get path: $path'); //DEBUG LOG
     var request = http.Request('GET', Uri.parse( path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';
     request.headers['Accept-Charset'] = 'UTF-8';
-    request.headers['DataServiceVersion'] = '1.0;NetFx';
+    request.headers['DataServiceVersion'] = '3.0;NetFx';
     request.headers['MaxDataServiceVersion'] = '3.0;NetFx';
     _sign4Tables(request);
     var res = await request.send();
@@ -472,22 +472,24 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /// Get a list of all tables in storage accout
-  /// filter: Required. Way to represent logic for filter condition can be gotten from official documentation e.g `RowKey%20eq%"237"` or  `AmountDue%20gt%2010`.
+  /// Get a list of all tables in storage account
+  /// top: Optional.	Returns only the top n tables or entities from the set. The package defaults this value to 20.
+  /// filter: Required. Logic for filter condition can be gotten from official documentation e.g `RowKey%20eq%"237"` or  `AmountDue%20gt%2010`.
   ///fields: Optional. Specify columns/fields to be returned. By default, all fields are returned by the package
   Future<List<String>> filterTableRows(
       {@required String tableName,
         @required String filter,
+        int top=20,
         List<String> fields}) async {
 
     String selectParams=_resolveNodeParams(fields);
-    String path='https://${config[AccountName]}.table.core.windows.net/$tableName()?filter=$filter&select=${selectParams}';
-    print('path to upload: $path');
+    String path='https://${config[AccountName]}.table.core.windows.net/$tableName()?\$filter=$filter&\$select=${selectParams}&\$top=$top';
+//    print('path to upload: $path'); //DEBUG LOG
     var request = http.Request('GET', Uri.parse( path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';
     request.headers['Accept-Charset'] = 'UTF-8';
-    request.headers['DataServiceVersion'] = '1.0;NetFx';
+    request.headers['DataServiceVersion'] = '3.0;NetFx';
     request.headers['MaxDataServiceVersion'] = '3.0;NetFx';
     _sign4Tables(request);
     var res = await request.send();
@@ -507,14 +509,15 @@ class AzureStorage {
   ///
   ///  'tableName', `partitionKey` and `rowKey` are all mandatory.
   Future<void> deleteTableRow(
-      {String tableName,
-        String partitionKey,
-        String rowKey}) async {
-
+      { @required String tableName,
+        @required String partitionKey,
+        @required String rowKey}) async {
     String path='https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\', RowKey=\'$rowKey\')';
+//    print('delete path: $path');
     var request = http.Request('DELETE', Uri.parse( path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';
+    request.headers['If-Match'] = '*';
     _sign4Tables(request);
     var res = await request.send();
     if (res.statusCode >= 200 && res.statusCode<300) {
@@ -527,13 +530,13 @@ class AzureStorage {
   /// Create a new queue
   ///
   /// 'qName' is  mandatory.
-  Future<bool> createQueue(String qName) async {
+  Future<void> createQueue(String qName) async {
     String path='https://${config[AccountName]}.queue.core.windows.net/$qName';
     var request = http.Request('PUT', Uri.parse( path));
     _sign(request);
     var res = await request.send();
     if (res.statusCode ==201) {
-      return true;
+      return;
     }
     var message = await res.stream.bytesToString();
     throw AzureStorageException(message, res.statusCode, res.headers);
@@ -592,11 +595,11 @@ class AzureStorage {
   /// 'vtimeout': Optional. If specified, the request must be made using an x-ms-version of 2011-08-18 or later. If not specified, the default value is 0. Specifies the new visibility timeout value, in seconds, relative to server time. The new value must be larger than or equal to 0, and cannot be larger than 7 days. The visibility timeout of a message cannot be set to a value later than the expiry time. visibilitytimeout should be set to a value smaller than the time-to-live value.
   ///
   /// 'messagettl': Optional. Specifies the time-to-live interval for the message, in seconds. Prior to version 2017-07-29, the maximum time-to-live allowed is 7 days. For version 2017-07-29 or later, the maximum time-to-live can be any positive number, as well as -1 indicating that the message does not expire. If this parameter is omitted, the default time-to-live is 7 days.
-  Future<bool> putQMessage(
-      {String qName,
-       int messagettl=604800,
-       int vtimeout=0,
-       String message}) async {
+  Future<void> putQMessage(
+      {@required String qName,
+        int messagettl=604800,
+        int vtimeout=0,
+       @required String message}) async {
     String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages?visibilitytimeout=$vtimeout&messagettl=$messagettl';
     var request = http.Request('POST', Uri.parse( path));
     request.body='''<QueueMessage>  
@@ -605,7 +608,7 @@ class AzureStorage {
     _sign(request);
     var res = await request.send();
     if (res.statusCode ==201 || res.statusCode==204) {
-      return true;
+      return ;
     }
     var rMessage = await res.stream.bytesToString();//DEBUG
     throw AzureStorageException(rMessage, res.statusCode, res.headers);
@@ -621,9 +624,9 @@ class AzureStorage {
   ///
   ///numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32. If fewer are visible, the visible messages are returned. By default, this API retrieves 20 messages from the queue with this operation.
   Future<List<AzureQMessage>> getQmessages(
-      {String qName,
-       int numofmessages=20}) async {
-    String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages?numofmessages=$numofmessages';
+      {@required String qName,
+       int numOfmessages=20}) async {
+    String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages?numofmessages=$numOfmessages';
     var request = http.Request('GET', Uri.parse( path));
     _sign(request);
     var res = await request.send();
@@ -641,7 +644,7 @@ class AzureStorage {
   ///
   ///numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32. If fewer are visible, the visible messages are returned. By default, a single message is retrieved from the queue with this operation. This API also retrieves a single message with this mtod by default
   Future<List<AzureQMessage>> peekQmessages(
-      { String qName,
+      { @required String qName,
         int numofmessages=1}) async {
     String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages?numofmessages=$numofmessages&peekonly=true';
     var request = http.Request('GET', Uri.parse( path));
@@ -663,9 +666,9 @@ class AzureStorage {
   ///
   /// 'popReceipt':	Required. A valid pop receipt value returned from an earlier call to the Get Messages or Update Message operation.
   Future<void> delQmessages(
-      { String qName,
-        String messageId,
-        String popReceipt}) async {
+      { @required String qName,
+        @required String messageId,
+        @required String popReceipt}) async {
     String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages/$messageId?popreceipt=$popReceipt';
     var request = http.Request('DELETE', Uri.parse( path));
     _sign(request);
@@ -688,11 +691,11 @@ class AzureStorage {
   ///
   ///visibilitytimeout	Required. Specifies the new visibility timeout value, in seconds, relative to server time. The new value must be larger than or equal to 0, and cannot be larger than 7 days. This API defaults this value to 0. The visibility timeout of a message cannot be set to a value later than the expiry time. A message can be updated until it has been deleted or has expired.
   Future<void> updateQmessages(
-      { String qName,
-        String messageId,
+      {@required String qName,
+        @required String messageId,
         Duration vTimeout,
-        String message,
-        String popReceipt}) async {
+        @required String message,
+        @required  String popReceipt}) async {
 
       int time=vTimeout!=null?vTimeout.inSeconds:0;
       String path='https://${config[AccountName]}.queue.core.windows.net/$qName/messages/$messageId?popreceipt=$popReceipt&visibilitytimeout=$time';
