@@ -1,0 +1,2 @@
+
+const connectionString='DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net';
