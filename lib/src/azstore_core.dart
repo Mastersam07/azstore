@@ -155,13 +155,13 @@ class AzureStorage {
   }
 
   String _resolveNodeParams(List<String> fields){
-    String selectParams='*';
+    String selectParams='';
     if(fields!=null && fields.length>0) {
       for (String s in fields) {
         selectParams += ',$s';
       }
     }
-    return selectParams=='*'?selectParams:selectParams.trim().substring(1);
+    return selectParams==''?'*':selectParams.trim().substring(1);
   }
 
   String _resolveNodeBody(String body,Map<String,dynamic> bodyMap){
@@ -455,6 +455,7 @@ class AzureStorage {
         List<String> fields}) async {
     String selectParams=_resolveNodeParams(fields);
     String path='https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\',RowKey=\'$rowKey\')?select=${selectParams}';
+    print('get path: $path');
     var request = http.Request('GET', Uri.parse( path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';

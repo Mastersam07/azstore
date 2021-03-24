@@ -22,8 +22,8 @@ Future<void> main() async {
 //  await testPeekQMessages();
 
 //  await testUploadTableNode();
-//   await testGetTableRow();
-  await testFilterTable();
+   await testGetTableRow();
+//  await testFilterTable();
 }
 
 Future<void> testFilterTable() async {
@@ -76,7 +76,7 @@ Future<void> testGetTableRow() async {
         tableName: 'profiles',
         partitionKey:myPartitionKey,
         rowKey:myRowKey,
-        fields: ['PartitionKey','RowKey','Address','CustomerSince']//
+        fields: ['Address','CustomerSince']//
     );
     print('result: $result');
   }catch(e){
