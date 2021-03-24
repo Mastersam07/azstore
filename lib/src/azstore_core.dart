@@ -162,7 +162,7 @@ class AzureStorage {
         selectParams += ',$s';
       }
     }
-    return selectParams;
+    return selectParams=='*'?selectParams:selectParams.substring(1);
   }
 
   String _resolveNodeBody(String body,Map<String,dynamic> bodyMap){
@@ -240,10 +240,10 @@ class AzureStorage {
   }
 
   ///Extracts json entity from a Map
-  String _getJsonFromMap(Map<String,String> bodyMap){
+  String _getJsonFromMap(Map<String,dynamic> bodyMap){
     String body='{';
     for(String key in bodyMap.keys){
-      String mainVal=bodyMap[key].runtimeType==String?'"${bodyMap[key]}"':bodyMap[key];
+      String mainVal=bodyMap[key].runtimeType==String?'"${bodyMap[key]}"':'${bodyMap[key]}';
       body+='"$key":${mainVal},';
     }
     body=body.substring(0,body.length-1)+'}';
@@ -292,23 +292,11 @@ class AzureStorage {
   }
 
   Future<void> deleteBlob(String path,
-      {String body,
-        Uint8List bodyBytes,
-        String contentType,
+      {
         BlobType type = BlobType.BlockBlob}) async {
     var request = http.Request('DELETE', uri(path: path));
     request.headers['x-ms-blob-type'] =
     type.toString() == 'BlobType.AppendBlob' ? 'AppendBlob' : 'BlockBlob';
-    request.headers['content-type'] = contentType;
-    if (type == BlobType.BlockBlob) {
-      if (bodyBytes != null) {
-        request.bodyBytes = bodyBytes;
-      } else if (body != null) {
-        request.body = body;
-      }
-    } else {
-      request.body = '';
-    }
     _sign(request);
     var res = await request.send();
     if (res.statusCode == 202) {
@@ -411,7 +399,7 @@ class AzureStorage {
   /// Update table entity/entry.
   ///
   /// 'tableName', `partitionKey` and `rowKey` are all mandatory. `body` and `bodyMap` are exclusive and mandatory.
-  Future<void> upsertTableNode(
+  Future<void> upsertTableRow(
       {String tableName,
         String partitionKey,
         String rowKey,
@@ -436,7 +424,7 @@ class AzureStorage {
   /// Upload or replace table entity/entry.
   ///
   /// 'tableName',`partitionKey` and `rowKey` are all mandatory. `body` and `bodyMap` are exclusive and mandatory.
-  Future<void> putTableNode(
+  Future<void> putTableRow(
       {String tableName,
         String partitionKey,
         String rowKey,
@@ -461,14 +449,13 @@ class AzureStorage {
   /// get data from azure tables
   ///
   /// 'tableName','partitionKey' and 'rowKey' are all mandatory. If no fields are specified, all fields attached to the entry are returned
-  Future<String> getTableNode(
-      {
-        String tableName,
+  Future<String> getTableRow(
+      {String tableName,
         String partitionKey,
         String rowKey,
         List<String> fields}) async {
     String selectParams=_resolveNodeParams(fields);
-    String path='https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\', RowKey=\'$rowKey\')?select=${selectParams.substring(1)}';
+    String path='https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\',RowKey=\'$rowKey\')?select=${selectParams}';
     var request = http.Request('GET', Uri.parse( path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';
@@ -488,7 +475,7 @@ class AzureStorage {
   /// Delete table entity.
   ///
   ///  'tableName', `partitionKey` and `rowKey` are all mandatory.
-  Future<void> deleteTableData(
+  Future<void> deleteTableRow(
       {String tableName,
         String partitionKey,
         String rowKey}) async {
