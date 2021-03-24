@@ -16,13 +16,27 @@ Future<void> main() async {
 //  await testGetQData();
 //  await testPutMessage();
 //  await testDeleteMessage();
-//  await testUploadTableNode();
 //  await testUpdateQMessage();
 //  await testGetQMessages();
 //  await testClearQMessage();
 //  await testPeekQMessages();
-   await testGetTableRow();
+
+//  await testUploadTableNode();
+//   await testGetTableRow();
+  await testFilterTable();
 }
+
+Future<void> testFilterTable() async {
+  var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
+  print('working on results...');
+  List<String> result=await storage.filterTableRows(tableName: 'profiles', filter: 'Age%20eq%20"24"', fields: ['Age']);
+  print('showing filter results');
+  for(String res in result){
+    print(res);
+  }
+}
+
+
 Future<void> testUploadTableNode() async {
   var storage = AzureStorage.parse('DefaultEndpointsProtocol=https;AccountName=gmartstore;AccountKey=63mnWYO7EfsBzwevWKfozxHqEJ5XrFJyJdR9e10vtlE4pfvcybBbIAmoBWKtkj9vNhqSwtPDF3K1OWtzXhh/Wg==;EndpointSuffix=core.windows.net');
 //  try {
@@ -45,6 +59,7 @@ Future<void> testUploadTableNode() async {
   await storage.upsertTableRow(
         tableName: 'profiles',
         rowKey:myRowKey,
+        partitionKey: myPartitionKey,
         bodyMap: rowMap
     );
     print('done uploading');

@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart' as crypto;
@@ -162,7 +161,7 @@ class AzureStorage {
         selectParams += ',$s';
       }
     }
-    return selectParams=='*'?selectParams:selectParams.substring(1);
+    return selectParams=='*'?selectParams:selectParams.trim().substring(1);
   }
 
   String _resolveNodeBody(String body,Map<String,dynamic> bodyMap){
@@ -400,9 +399,9 @@ class AzureStorage {
   ///
   /// 'tableName', `partitionKey` and `rowKey` are all mandatory. `body` and `bodyMap` are exclusive and mandatory.
   Future<void> upsertTableRow(
-      {String tableName,
-        String partitionKey,
-        String rowKey,
+      {@required String tableName,
+        @required  String partitionKey,
+        @required String rowKey,
         String body,
         Map<String,dynamic> bodyMap}) async {
     body=_resolveNodeBody(body, bodyMap);
@@ -469,6 +468,37 @@ class AzureStorage {
       return message;
     }
     var message = await res.stream.bytesToString();
+    throw AzureStorageException(message, res.statusCode, res.headers);
+  }
+
+  /// Get a list of all tables in storage accout
+  /// filter: Required. Way to represent logic for filter condition can be gotten from official documentation e.g `RowKey%20eq%"237"` or  `AmountDue%20gt%2010`.
+  ///fields: Optional. Specify columns/fields to be returned. By default, all fields are returned by the package
+  Future<List<String>> filterTableRows(
+      {@required String tableName,
+        @required String filter,
+        List<String> fields}) async {
+
+    String selectParams=_resolveNodeParams(fields);
+    String path='https://${config[AccountName]}.table.core.windows.net/$tableName()?filter=$filter&select=${selectParams}';
+    print('path to upload: $path');
+    var request = http.Request('GET', Uri.parse( path));
+    request.headers['Accept'] = 'application/json;odata=nometadata';
+    request.headers['Content-Type'] = 'application/json';
+    request.headers['Accept-Charset'] = 'UTF-8';
+    request.headers['DataServiceVersion'] = '1.0;NetFx';
+    request.headers['MaxDataServiceVersion'] = '3.0;NetFx';
+    _sign4Tables(request);
+    var res = await request.send();
+    var message = await res.stream.bytesToString();
+    if (res.statusCode ==200) {
+      List<String> tabList=[];
+      var jsonResponse= await jsonDecode(message);
+      for(var tData in jsonResponse['value']){
+        tabList.add(tData.toString());
+      }
+      return tabList;
+    }
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
