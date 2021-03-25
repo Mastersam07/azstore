@@ -274,6 +274,7 @@ Navigate to your azure portal and create a resource by clicking the `create a re
 ###STEP 2.
 Enter details for your new storage account and then `Review + create` . Also feel free to explore options in the other tabs (`Networking`, `Data Protection`, `Advanced` and `Tags`) for more control over your storage account. (Review process may take a few seconds).
 
+
 ![storewalkthrough](https://user-images.githubusercontent.com/37802577/112473217-5d875000-8d6e-11eb-9a1b-c21735b6e8fc.png)
 
 ###STEP 3:
@@ -283,11 +284,12 @@ Complete account creation by clicking the `Create` button after review is comple
 ![create](https://user-images.githubusercontent.com/37802577/112473256-6841e500-8d6e-11eb-8d68-4cf6bbb1842a.png)
 
 
-####STEP 4:
+###STEP 4:
 Go to resource after deployment is complete.
 
 
 ![deploymentcompleted](https://user-images.githubusercontent.com/37802577/112473277-6ed05c80-8d6e-11eb-83fa-a01d5908adae.png).
+
 
 ###STEP 5:
 In the resource page, navigate to the `Access keys` tab and `show keys`. The `show keys` button exposes your access keys and **connection string** which is all you need to use this flutter package.
