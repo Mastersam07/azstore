@@ -7,7 +7,7 @@ Access azure storage options via REST APIs.
 This package handles all the encryption and formatting required to provide easy access to azure storage options via REST APIs.
 The package currently provides functions to query and upload data to Azure blobs, tables and queues. Add the latest dependency to your
 pubspec.yaml to get started.        ```azstore: ^latest_version ```          and import. In the following examples,         `'your connection string'`
- can be gotten from the azure portal after simply creating a storage account or you can follow the walkthrough in the section [Creating Azure Storage Account](#creating-azure-storage-account)
+ can be gotten from the azure portal after simply creating a storage account (you can follow the walkthrough in the section [Creating Azure Storage Account](#creating-azure-storage-account))
 
 ## Azure Blob Functions.
 
