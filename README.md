@@ -4,7 +4,7 @@ Access azure storage options via REST APIs.
 
 ## Getting Started
 
-This package handles all the encryption and formatting required to provide easy access to azure storage options via REST APIs.
+This package handles all the encryption and formatting required to provide easy access to azure storage options via REST APIs in flutter project.
 The package currently provides functions to query and upload data to Azure blobs, tables and queues. Add the latest dependency to your
 pubspec.yaml to get started.        ```azstore: ^latest_version ```          and import. In the following examples,         `'your connection string'`
  can be gotten from the azure portal after simply creating a storage account (you can follow the walkthrough in the section [Creating Azure Storage Account](#creating-azure-storage-account))
@@ -40,7 +40,7 @@ Future<void> testDeleteBlob() async {
   var storage = AzureStorage.parse('your connection string');
   try {
     await storage.deleteBlob('/azpics/fdblack.png');
-    print('done deleting');//Do something else
+    print('done deleting');
   }catch(e){
     print('exception: $e');
   }
@@ -65,7 +65,7 @@ Future<void> testUpload2Table() async {
   var storage = AzureStorage.parse('your connection string');
   try {
     var myPartitionKey='partition_key';
-    var myRowKey='237';//Must be unique
+    var myRowKey='237';
     Map<String, dynamic> rowMap={"Address":"Santa Clara",
     "Age":23,
     "AmountDue":200.23,
@@ -80,9 +80,9 @@ Future<void> testUpload2Table() async {
      "RowKey":"$myRowKey"
     };
     await storage.upsertTableRow(
-        tableName: 'profiles',//Required.
-        rowKey:myRowKey,//Required.
-        bodyMap: rowMap//Required.
+        tableName: 'profiles',
+        rowKey:myRowKey,
+        bodyMap: rowMap
      );
   }catch(e){
     print('tables upsert exception: $e');
@@ -100,10 +100,10 @@ Future<void> testGetTableRow() async {
     var myPartitionKey='partition_key';
     var myRowKey='unique_row_id';
     String result=await storage.getTableRow(
-        tableName: 'profiles',//Required.
-        partitionKey:myPartitionKey,// Required. partitionKey parameter specified in upsert operation.
-        rowKey:myRowKey,// Required. rowKey parameter specified in upsert operation.
-        fields: ['Address','CustomerSince']//Optional. Retrieves all fields when not specified.
+        tableName: 'profiles',
+        partitionKey:myPartitionKey,
+        rowKey:myRowKey,
+        fields: ['Address','CustomerSince']
     );
     print('result: $result');
   }catch(e){
@@ -113,10 +113,10 @@ Future<void> testGetTableRow() async {
 
 Future<void> testFilterTable() async {
   var storage = AzureStorage.parse('your connection string');
-  List<String> result=await storage.filterTableRows(tableName: 'profiles',//Required
-   filter: 'Age%20lt%2024', //Required.
-   fields: ['Age','CustomerSince'], //Optional. Retrieves all fields when not specified.
-   top:30 //Optional. Number of entities to retrieve. This package returns top 20 filter results when not specified.
+  List<String> result=await storage.filterTableRows(tableName: 'profiles',
+   filter: 'Age%20lt%2024', 
+   fields: ['Age','CustomerSince'], 
+   top:30 
    );
   print('\nFilter results');
   for(String res in result){
@@ -130,7 +130,6 @@ Table rows can also be deleted.
 Future<void> testDeleteTableRow() async {
   try {
     var storage = AzureStorage.parse('your connection string');
-    //All parameters are required
     await storage.deleteTableRow(tableName: 'profiles', partitionKey: 'fgtdssdas', rowKey: '232');
   }catch(e){
     print('delete exception: $e');
@@ -208,8 +207,8 @@ Future<void> testGetQMessages() async {
   var storage = AzureStorage.parse('your connection string');
   print('working on results...');
   try {
-    List<AzureQMessage> result = await storage.getQmessages(qName: 'ttable',//Required
-      numOfmessages: 10//Optional. Number of messages to retrieve. This package returns top 20 filter results when not specified.
+    List<AzureQMessage> result = await storage.getQmessages(qName: 'ttable',
+      numOfmessages: 10
     );
     print('showing get results');
     for (var res in result) {
@@ -245,7 +244,6 @@ Future<void> testClearQMessage() async {
 Future<void> testDeleteMessage() async {
   var storage = AzureStorage.parse('your connection string');
   try {
-  //All fields are required.
     await storage.delQmessages(qName: 'ttable',
      messageId: '27bc633b-4de0-42bf-bea6-0860bd410f4e',
       popReceipt: 'AgAAAAMAAAAAAAAAX3e0UwAg1wE='
