@@ -295,6 +295,6 @@ Go to resource after deployment is complete.
 In the resource page, navigate to the `Access keys` tab and `show keys`. The `show keys` button exposes your access keys and **connection string** which is all you need to use this flutter package.
 
 
-![copy_keys](https://user-images.githubusercontent.com/37802577/112472955-071a1180-8d6e-11eb-97d6-76cb61394708.png)
+![copy_keys](https://user-images.githubusercontent.com/37802577/112519675-e2885e80-8d9a-11eb-9c8b-1ac493fe9f05.png)
 
 
