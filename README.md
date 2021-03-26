@@ -323,14 +323,16 @@ In the resource page, navigate to the `Access keys` tab and `show keys`. The `sh
   <tr>
     <td align="center">
       <a href = "https://github.com/Algure"><img src="https://avatars.githubusercontent.com/u/37802577?v=4" width="72" alt="Ajiri Gunn" /></a>
+      <p><b>Ajiri Gunn</b></p>
       <p align="center">
         <a href = "https://github.com/Algure"><img src = "http://www.iconninja.com/files/241/825/211/round-collaboration-social-github-code-circle-network-icon.svg" width="18" height = "18"/></a>
-        <a href = ""><img src = "https://github.com/aritraroy/social-icons/blob/master/twitter-icon.png?raw=true" width="18" height="18"/></a>
-        <a href = ""><img src = "https://github.com/aritraroy/social-icons/blob/master/linkedin-icon.png?raw=true" width="18" height="18"/></a>
+        <a href = "."><img src = "https://github.com/aritraroy/social-icons/blob/master/twitter-icon.png?raw=true" width="18" height="18"/></a>
+        <a href = "."><img src = "https://github.com/aritraroy/social-icons/blob/master/linkedin-icon.png?raw=true" width="18" height="18"/></a>
       </p>
     </td>
     <td align="center">
       <a href = "https://github.com/mastersam07"><img src="https://avatars3.githubusercontent.com/u/31275429?s=460&u=b935d608a06c1604bae1d971e69a731480a27d46&v=4" width="72" alt="Samuel Abada" /></a>
+      <p><b>Samuel Abada</b></p>
       <p align="center">
         <a href = "https://github.com/mastersam07"><img src = "http://www.iconninja.com/files/241/825/211/round-collaboration-social-github-code-circle-network-icon.svg" width="18" height = "18"/></a>
         <a href = "https://twitter.com/mastersam_"><img src = "https://github.com/aritraroy/social-icons/blob/master/twitter-icon.png?raw=true" width="18" height="18"/></a>

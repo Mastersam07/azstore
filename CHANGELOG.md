@@ -1,11 +1,8 @@
 ## 0.0.3
-
-Code fixes.
+- Code fixes.
 
 ## 0.0.2
-
-Updated docs.
+- Updated docs.
 
 ## 0.0.1
-
-blob, tables and queue access
+- blob, tables and queue access
