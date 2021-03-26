@@ -1,0 +1,2 @@
+const connectionString =
+    'SomeConnectionString';

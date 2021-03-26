@@ -1,4 +1,3 @@
-// import 'package:azstore/constants.dart';
 import 'package:azstore/src/azstore_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -170,7 +169,7 @@ Future<void> testGetQMessages() async {
     );
     print('showing results');
     for (final res in result) {
-      print('message ${res}');
+      print('message $res');
     }
   }catch (e){
     print('Q get messages exception ${e.toString()}');

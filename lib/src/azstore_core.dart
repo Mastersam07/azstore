@@ -122,7 +122,7 @@ class AzureStorage {
     final name = config[AccountName];
     return Uri(
         scheme: scheme,
-        host: '${name}.blob.${suffix}',
+        host: '$name.blob.$suffix',
         path: path,
         queryParameters: queryParameters);
   }
@@ -130,7 +130,7 @@ class AzureStorage {
   String _canonicalHeaders(Map<String, String> headers) {
     final keys = headers.keys
         .where((i) => i.startsWith('x-ms-'))
-        .map((i) => '${i}:${headers[i]}\n')
+        .map((i) => '$i:${headers[i]}\n')
         .toList();
     keys.sort();
     return keys.join();
@@ -142,7 +142,7 @@ class AzureStorage {
     }
     final keys = items.keys.toList();
     keys.sort();
-    return keys.map((i) => '\n${i}:${items[i]}').join();
+    return keys.map((i) => '\n$i:${items[i]}').join();
   }
 
   List<String> _extractQList(String message) {
@@ -202,10 +202,10 @@ class AzureStorage {
     final name = config[AccountName];
     final path = request.url.path;
     final sig =
-        '${request.method}\n${ce}\n${cl}\n${cz}\n${cm}\n${ct}\n${dt}\n${ims}\n${imt}\n${inm}\n${ius}\n${ran}\n${chs}/${name}${path}${crs}';
+        '${request.method}\n$ce\n$cl\n$cz\n$cm\n$ct\n$dt\n$ims\n$imt\n$inm\n$ius\n$ran\n$chs/$name$path$crs';
     final mac = crypto.Hmac(crypto.sha256, accountKey);
     final digest = base64Encode(mac.convert(utf8.encode(sig)).bytes);
-    final auth = 'SharedKey ${name}:${digest}';
+    final auth = 'SharedKey $name:$digest';
     request.headers['Authorization'] = auth;
     //print(sig);
   }
@@ -228,10 +228,10 @@ class AzureStorage {
     final crs = _canonicalResources(request.url.queryParameters);
     final name = config[AccountName];
     final sig =
-        '${request.method}\n${ce}\n${cl}\n${cz}\n${cm}\n${ct}\n${dt}\n${ims}\n${imt}\n${inm}\n${ius}\n${ran}\n${chs}/${name}/${crs}';
+        '${request.method}\n$ce\n$cl\n$cz\n$cm\n$ct\n$dt\n$ims\n$imt\n$inm\n$ius\n$ran\n$chs/$name/$crs';
     final mac = crypto.Hmac(crypto.sha256, accountKey);
     final digest = base64Encode(mac.convert(utf8.encode(sig)).bytes);
-    final auth = 'SharedKey ${name}:${digest}';
+    final auth = 'SharedKey $name:$digest';
     request.headers['Authorization'] = auth;
   }
 
@@ -242,10 +242,10 @@ class AzureStorage {
     final dt = request.headers['Date'] ?? '';
     final name = config[AccountName];
     final path = request.url.path;
-    final sig = '${dt}\n/${name}${path}';
+    final sig = '$dt\n/$name$path';
     final mac = crypto.Hmac(crypto.sha256, accountKey);
     final digest = base64Encode(mac.convert(utf8.encode(sig)).bytes);
-    final auth = 'SharedKeyLite ${name}:${digest}';
+    final auth = 'SharedKeyLite $name:$digest';
     request.headers['Authorization'] = auth;
   }
 
@@ -256,7 +256,7 @@ class AzureStorage {
       final mainVal = bodyMap[key].runtimeType == String
           ? '"${bodyMap[key]}"'
           : '${bodyMap[key]}';
-      body += '"$key":${mainVal},';
+      body += '"$key":$mainVal,';
     }
     body = body.substring(0, body.length - 1) + '}';
     return body;
@@ -344,8 +344,7 @@ class AzureStorage {
   /// 'tableName' is  mandatory.
   Future<void> createTable(String tableName) async {
     final body = '{"TableName":"$tableName"}';
-    final path =
-        'https://${config[AccountName]}.table.core.windows.net/Tables';
+    final path = 'https://${config[AccountName]}.table.core.windows.net/Tables';
     final request = http.Request('POST', Uri.parse(path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';
@@ -385,8 +384,7 @@ class AzureStorage {
   /// Get a list of all tables in storage accout
   ///
   Future<List<String>> getTables() async {
-    final path =
-        'https://${config[AccountName]}.table.core.windows.net/Tables';
+    final path = 'https://${config[AccountName]}.table.core.windows.net/Tables';
     final request = http.Request('GET', Uri.parse(path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
     request.headers['Content-Type'] = 'application/json';
@@ -406,12 +404,10 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * Update table entity/entry.
-   *
-   * 'tableName', `partitionKey` and `rowKey` are all mandatory. 
-   * `body` and `bodyMap` are exclusive and mandatory.
-   */
+  /// Update table entity/entry.
+  ///
+  /// 'tableName', `partitionKey` and `rowKey` are all mandatory.
+  /// `body` and `bodyMap` are exclusive and mandatory.
   Future<void> upsertTableRow(
       {@required String tableName,
       @required String partitionKey,
@@ -435,12 +431,10 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * Upload or replace table entity/entry.
-   *
-   * 'tableName',`partitionKey` and `rowKey` are all mandatory. 
-   * `body` and `bodyMap` are exclusive and mandatory.
-   */
+  /// Upload or replace table entity/entry.
+  ///
+  /// 'tableName',`partitionKey` and `rowKey` are all mandatory.
+  /// `body` and `bodyMap` are exclusive and mandatory.
   Future<void> putTableRow(
       {String tableName,
       String partitionKey,
@@ -464,12 +458,10 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * get data from azure tables
-   *
-   * 'tableName','partitionKey' and 'rowKey' are all mandatory. 
-   * If no fields are specified, all fields attached to the entry are returned
-   */
+  /// get data from azure tables
+  ///
+  /// 'tableName','partitionKey' and 'rowKey' are all mandatory.
+  /// If no fields are specified, all fields attached to the entry are returned
   Future<String> getTableRow(
       {String tableName,
       String partitionKey,
@@ -477,7 +469,7 @@ class AzureStorage {
       List<String> fields}) async {
     final selectParams = _resolveNodeParams(fields);
     final path =
-        'https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\',RowKey=\'$rowKey\')?\$select=${selectParams}';
+        'https://${config[AccountName]}.table.core.windows.net/$tableName(PartitionKey=\'$partitionKey\',RowKey=\'$rowKey\')?\$select=$selectParams';
 //    print('get path: $path'); //DEBUG LOG
     final request = http.Request('GET', Uri.parse(path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
@@ -495,15 +487,13 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * Get a list of all tables in storage account
-   * top: Optional.	Returns only the top n tables or entities from the set. 
-   * The package defaults this value to 20.
-   * filter: Required. 
-   * Logic for filter condition can be gotten from official documentation 
-   * e.g `RowKey%20eq%"237"` or  `AmountDue%20gt%2010`.
-   *fields: Optional. Specify columns/fields to be returned. By default, all fields are returned by the package
-   */
+  /// Get a list of all tables in storage account
+  /// top: Optional.	Returns only the top n tables or entities from the set.
+  /// The package defaults this value to 20.
+  /// filter: Required.
+  /// Logic for filter condition can be gotten from official documentation
+  /// e.g `RowKey%20eq%"237"` or  `AmountDue%20gt%2010`.
+  ///fields: Optional. Specify columns/fields to be returned. By default, all fields are returned by the package
   Future<List<String>> filterTableRows(
       {@required String tableName,
       @required String filter,
@@ -511,7 +501,7 @@ class AzureStorage {
       List<String> fields}) async {
     final selectParams = _resolveNodeParams(fields);
     final path =
-        'https://${config[AccountName]}.table.core.windows.net/$tableName()?\$filter=$filter&\$select=${selectParams}&\$top=$top';
+        'https://${config[AccountName]}.table.core.windows.net/$tableName()?\$filter=$filter&\$select=$selectParams&\$top=$top';
 //    print('path to upload: $path'); //DEBUG LOG
     final request = http.Request('GET', Uri.parse(path));
     request.headers['Accept'] = 'application/json;odata=nometadata';
@@ -533,11 +523,9 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * Delete table entity.
-   *
-   *  'tableName', `partitionKey` and `rowKey` are all mandatory.
-   */
+  /// Delete table entity.
+  ///
+  ///  'tableName', `partitionKey` and `rowKey` are all mandatory.
   Future<void> deleteTableRow(
       {@required String tableName,
       @required String partitionKey,
@@ -562,8 +550,7 @@ class AzureStorage {
   ///
   /// 'qName' is  mandatory.
   Future<void> createQueue(String qName) async {
-    final path =
-        'https://${config[AccountName]}.queue.core.windows.net/$qName';
+    final path = 'https://${config[AccountName]}.queue.core.windows.net/$qName';
     final request = http.Request('PUT', Uri.parse(path));
     _sign(request);
     final res = await request.send();
@@ -574,11 +561,9 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * Get queue data
-   *
-   * 'qName' is  mandatory.
-   */
+  /// Get queue data
+  ///
+  /// 'qName' is  mandatory.
   Future<Map<String, String>> getQData(String qName) async {
     final path =
         'https://${config[AccountName]}.queue.core.windows.net/$qName?comp=metadata';
@@ -592,14 +577,11 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * Delete a new queue
-   *
-   * 'qName' is  mandatory.
-   */
+  /// Delete a new queue
+  ///
+  /// 'qName' is  mandatory.
   Future<void> deleteQueue(String qName) async {
-    final path =
-        'https://${config[AccountName]}.queue.core.windows.net/$qName';
+    final path = 'https://${config[AccountName]}.queue.core.windows.net/$qName';
     final request = http.Request('DELETE', Uri.parse(path));
     _sign(request);
     final res = await request.send();
@@ -625,24 +607,22 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * Put queue message
-   *
-   * 'qName': Name of the queue is  mandatory.
-   *
-   *  'message': The message data is required
-   *
-   * 'vtimeout': Optional. If specified, the request must be made using an x-ms-version of 2011-08-18 or later.
-   * If not specified, the default value is 0. Specifies the new visibility timeout value, in seconds, relative to server time. 
-   * The new value must be larger than or equal to 0, and cannot be larger than 7 days. 
-   * The visibility timeout of a message cannot be set to a value later than the expiry time. 
-   * visibilitytimeout should be set to a value smaller than the time-to-live value.
-   *
-   * 'messagettl': Optional. Specifies the time-to-live interval for the message, in seconds. 
-   * Prior to version 2017-07-29, the maximum time-to-live allowed is 7 days. 
-   * For version 2017-07-29 or later, the maximum time-to-live can be any positive number, as well as -1 indicating that the message does not expire. 
-   * If this parameter is omitted, the default time-to-live is 7 days.
-   */
+  /// Put queue message
+  ///
+  /// 'qName': Name of the queue is  mandatory.
+  ///
+  ///  'message': The message data is required
+  ///
+  /// 'vtimeout': Optional. If specified, the request must be made using an x-ms-version of 2011-08-18 or later.
+  /// If not specified, the default value is 0. Specifies the new visibility timeout value, in seconds, relative to server time.
+  /// The new value must be larger than or equal to 0, and cannot be larger than 7 days.
+  /// The visibility timeout of a message cannot be set to a value later than the expiry time.
+  /// visibilitytimeout should be set to a value smaller than the time-to-live value.
+  ///
+  /// 'messagettl': Optional. Specifies the time-to-live interval for the message, in seconds.
+  /// Prior to version 2017-07-29, the maximum time-to-live allowed is 7 days.
+  /// For version 2017-07-29 or later, the maximum time-to-live can be any positive number, as well as -1 indicating that the message does not expire.
+  /// If this parameter is omitted, the default time-to-live is 7 days.
   Future<void> putQMessage(
       {@required String qName,
       int messagettl = 604800,
@@ -663,20 +643,18 @@ class AzureStorage {
     throw AzureStorageException(rMessage, res.statusCode, res.headers);
   }
 
-  /**
-   * Get a list of all queue messaged in a queue
-   *
-   * 'qName': Name of the queue is  mandatory.
-   *
-   * vtimeout: Optional. Specifies the new visibility timeout value, in seconds, relative to server time. The default value is 30 seconds.
-   *
-   *A specified value must be larger than or equal to 1 second, and cannot be larger than 7 days, or larger than 2 hours on REST protocol versions prior to version 2011-08-18. 
-   *The visibility timeout of a message can be set to a value later than the expiry time.
-   *
-   *numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32. 
-   *If fewer are visible, the visible messages are returned. 
-   *By default, this API retrieves 20 messages from the queue with this operation.
-   */
+  /// Get a list of all queue messaged in a queue
+  ///
+  /// 'qName': Name of the queue is  mandatory.
+  ///
+  /// vtimeout: Optional. Specifies the new visibility timeout value, in seconds, relative to server time. The default value is 30 seconds.
+  ///
+  ///A specified value must be larger than or equal to 1 second, and cannot be larger than 7 days, or larger than 2 hours on REST protocol versions prior to version 2011-08-18.
+  ///The visibility timeout of a message can be set to a value later than the expiry time.
+  ///
+  ///numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32.
+  ///If fewer are visible, the visible messages are returned.
+  ///By default, this API retrieves 20 messages from the queue with this operation.
   Future<List<AzureQMessage>> getQmessages(
       {@required String qName, int numOfmessages = 20}) async {
     final path =
@@ -692,16 +670,14 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * The Peek Messages operation retrieves one or more messages from the front of the queue, but does not alter the visibility of the message.
-   *
-   * 'qName': Name of the queue is  mandatory.
-   *
-   *numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32. 
-   *If fewer are visible, the visible messages are returned. 
-   *By default, a single message is retrieved from the queue with this operation. 
-   *This API also retrieves a single message with this mtod by default
-   */
+  /// The Peek Messages operation retrieves one or more messages from the front of the queue, but does not alter the visibility of the message.
+  ///
+  /// 'qName': Name of the queue is  mandatory.
+  ///
+  ///numofmessages:	Optional. A nonzero integer value that specifies the number of messages to retrieve from the queue, up to a maximum of 32.
+  ///If fewer are visible, the visible messages are returned.
+  ///By default, a single message is retrieved from the queue with this operation.
+  ///This API also retrieves a single message with this mtod by default
   Future<List<AzureQMessage>> peekQmessages(
       {@required String qName, int numofmessages = 1}) async {
     final path =
@@ -717,15 +693,13 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   * The Delete Message operation deletes the specified message from the queue.
-   *
-   * 'qName': Name of the queue is  mandatory.
-   *
-   * 'messageId':	Required.  A valid messageId value returned from an earlier call to the Get Messages or Update Message operation.
-   *
-   * 'popReceipt':	Required. A valid pop receipt value returned from an earlier call to the Get Messages or Update Message operation.
-   */
+  /// The Delete Message operation deletes the specified message from the queue.
+  ///
+  /// 'qName': Name of the queue is  mandatory.
+  ///
+  /// 'messageId':	Required.  A valid messageId value returned from an earlier call to the Get Messages or Update Message operation.
+  ///
+  /// 'popReceipt':	Required. A valid pop receipt value returned from an earlier call to the Get Messages or Update Message operation.
   Future<void> delQmessages(
       {@required String qName,
       @required String messageId,
@@ -742,21 +716,19 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   *The Update Message operation updates the visibility timeout of a message. 
-   *You can also use this operation to update the contents of a message.
-   *
-   * popreceipt	Required. Specifies the valid pop receipt value returned from an earlier call to the Get Messages or Update Message operation.
-   *
-   *  message:  Required. The message can be up to 64KB in size.
-   *
-   * messageId	Required. Specifies the valid messageId value returned from an earlier call to the Get Messages or Update Message operation.
-   *
-   *visibilitytimeout	Required. Specifies the new visibility timeout value, in seconds, relative to server time. 
-   *The new value must be larger than or equal to 0, and cannot be larger than 7 days. 
-   *This API defaults this value to 0. The visibility timeout of a message cannot be set to a value later than the expiry time. 
-   *A message can be updated until it has been deleted or has expired.
-   */
+  ///The Update Message operation updates the visibility timeout of a message.
+  ///You can also use this operation to update the contents of a message.
+  ///
+  /// popreceipt	Required. Specifies the valid pop receipt value returned from an earlier call to the Get Messages or Update Message operation.
+  ///
+  ///  message:  Required. The message can be up to 64KB in size.
+  ///
+  /// messageId	Required. Specifies the valid messageId value returned from an earlier call to the Get Messages or Update Message operation.
+  ///
+  ///visibilitytimeout	Required. Specifies the new visibility timeout value, in seconds, relative to server time.
+  ///The new value must be larger than or equal to 0, and cannot be larger than 7 days.
+  ///This API defaults this value to 0. The visibility timeout of a message cannot be set to a value later than the expiry time.
+  ///A message can be updated until it has been deleted or has expired.
   Future<void> updateQmessages(
       {@required String qName,
       @required String messageId,
@@ -779,12 +751,10 @@ class AzureStorage {
     throw AzureStorageException(message, res.statusCode, res.headers);
   }
 
-  /**
-   *The Clear Messages operation deletes all messages from the specified queue.
-   *
-   * 'qName': Name of the queue is  mandatory.
-   *
-   */
+  ///The Clear Messages operation deletes all messages from the specified queue.
+  ///
+  /// 'qName': Name of the queue is  mandatory.
+  ///
   Future<void> clearQmessages(String qName) async {
     final path =
         'https://${config[AccountName]}.queue.core.windows.net/$qName/messages';
